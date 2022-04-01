@@ -26,9 +26,9 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
 
-    axios({
+    const authResponse = await axios({
         method: 'POST',
         url: `${process.env.GN_ENDPOINT}/oauth/token`,
         headers: {
@@ -39,8 +39,8 @@ app.get('/', (req, res) => {
         data: {
             grant_type: 'client_credentials'
         }
-    }).then((response) => {
-        const accessToken = response.data?.access_token;
+    });
+       const accessToken = authResponse.data?.access_token;
     
         const reqGN = axios.create({
             baseURL: process.env.GN_ENDPOINT,
@@ -62,9 +62,11 @@ app.get('/', (req, res) => {
             solicitacaoPagador: "Cobrança"
         };
     
-        reqGN.post('/v2/cob', dataCob).then((response => res.send(response.data)));
-    });
-    
+        const cobResponse = await reqGN.post('/v2/cob', dataCob);
+
+
+        const qrcodeResponse = await reqGN.get(`/v2/loc/${cobResponse.data.loc.id}/qrcode`);
+        res.render('qrcode', { qrcodeImage: qrcodeResponse.data.imagemQrcode })
 });
 
 app.listen(5000, () => {
