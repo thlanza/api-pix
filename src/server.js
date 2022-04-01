@@ -9,6 +9,10 @@ const GNRequest = require('./apis/gerencianet');
 
 const app = express();
 
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 
@@ -44,7 +48,12 @@ app.get('/cobrancas', async (req, res) => {
     const cobResponse = await reqGN.get('/v2/cob?inicio=2022-02-15T16:01:35Z&fim=2022-04-01T23:59:00Z');
 
     res.send(cobResponse.data);
-})
+});
+
+app.post('/webhook(/pix)?', (req, res) => {
+    console.log(req.body);
+    res.send('200');
+});
 
 app.listen(5000, () => {
     console.log('Api Pix rodando.')
